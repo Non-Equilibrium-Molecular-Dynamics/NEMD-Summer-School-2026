@@ -1,0 +1,94 @@
+# =====================================================================
+#  NEMD Summer School 2026 - Day 1 hands-on
+#  MEASUREMENT: shear viscosity
+#
+#  Shear the channel (Couette) and measure two things: the shear rate
+#  from the velocity profile vx(z), and the shear stress from the FLUID-ONLY
+#  virial. The viscosity is eta = |pxz| / (dvx/dz). The fluid-only stress drops
+#  the stiff walls' virial (less noisy than the global pressure tensor), but
+#  eta from a short LJ run is still a QUALITATIVE trend, not a precise number.
+#
+#  Run from this folder via the Cirrus wrapper:
+#     ../submit.sh viscosity.in        (locally: lmp_serial -in viscosity.in)
+#  then: python3 analyse_viscosity.py
+#
+#  This file sets its case parameters, then includes the shared setup with
+#  `include ../shared_setup.lmp` (the LJ channel every Day-1 run shares).
+# =====================================================================
+
+# ---- case parameters (this measurement's settings; -var still overrides) ----
+variable Tbot   index 1.0      # isothermal walls (no thermal gradient)
+variable Ttop   index 1.0
+variable nequil index 20000    # equilibration steps
+variable nprod  index 50000    # production steps (multiple of 100)
+
+include ../shared_setup.lmp
+
+# =====================================================================
+#  MEASUREMENT: shear viscosity
+#  Shear (Couette), measure dvx/dz from vx(z) and the virial shear stress.
+# =====================================================================
+variable vwall index 0.5       # wall speed, each wall +/- (gentle = linear regime)
+variable localstress index 0   # -var localstress 1 -> also bin a local p_xz(z) profile (optional extension)
+
+# Drive: `units box` is ESSENTIAL (else vwall is read in lattice units, ~1.7x off).
+# Thermostat the moving inner bath layers about their streaming velocity.
+velocity drive_bot set -${vwall} 0.0 0.0 units box
+velocity drive_top set  ${vwall} 0.0 0.0 units box
+compute Tcb bath_bot temp/com
+compute Tct bath_top temp/com
+fix_modify bbot temp Tcb
+fix_modify btop temp Tct
+
+# shear stress: FLUID-ONLY xz shear stress from the per-atom virial. compute
+# stress/atom is stress*volume per atom (Irving-Kirkwood); summing component [5]
+# over the fluid and dividing by the fluid volume gives p_xz WITHOUT the stiff
+# walls' virial -- less noisy than the global pressure tensor. NULL temp
+# -> pair (virial) only, so the streaming velocity does not contaminate it.
+# Defined ONCE here; the optional local-profile block below reuses this compute.
+compute  satom  fluid stress/atom NULL pair
+compute  sredxz fluid reduce sum c_satom[5]
+# Vf is the fluid's EFFECTIVE volume. The naive gap lx*ly*(Lz-2*wall_th) overestimates
+# |p_xz| by ~6% (near-wall virial enhancement; no fluid sits right at the walls). The
+# effective height 18.918 (in place of Lz-2*wall_th) corrects for this, so the
+# volume-averaged stress matches the volume-exact local p_xz(z) profile (the optional
+# localstress path below, interior-60% mean).
+variable Vf   equal lx*ly*18.918
+variable pxzf equal -c_sredxz/v_Vf
+
+run ${nequil}
+reset_timestep 0
+
+variable binw equal 0.5                        # velocity-profile bin width (sigma)
+variable nvb  equal round(v_Lz/v_binw)
+variable dzv  equal v_Lz/v_nvb
+compute cvx fluid chunk/atom bin/1d z lower ${dzv} units box
+fix     fvx  fluid ave/chunk 100 ${nrep} ${nfreq} cvx vx file day1_vx.profile
+# per-bin <ke/atom> on the same z-chunk: reconstruct the peculiar T(z) profile
+# as T(z) = (2/3)(<ke> - 0.5*vx^2)  (this LAMMPS build's ave/chunk `temp` is NOT bias-corrected)
+compute keat fluid ke/atom
+fix     fke  fluid ave/chunk 100 ${nrep} ${nfreq} cvx c_keat file day1_KEz.profile
+fix     fpxz all   ave/time  100 1 100 v_pxzf file day1_stress.dat
+
+# OPTIONAL local stress profile (off by default; pass -var localstress 1). It REUSES the
+# always-on compute satom above (stress*volume per atom, Irving-Kirkwood); `norm none` makes
+# ave/chunk SUM it over each bin (not atom-average it), so the c_satom[5] column is the
+# bin-summed virial: divide each bin by its volume (Lx*Ly*dzv) to recover a local p_xz(z).
+# The interior-60% mean of that local p_xz(z) is the volume-exact shear stress, which the
+# effective height in Vf above reproduces -- a cross-check of the two stress estimates.
+if "${localstress} > 0" then &
+  "fix     fsxz  fluid ave/chunk 100 ${nrep} ${nfreq} cvx c_satom[5] norm none file day1_stressprofile.dat"
+
+# geometry handed to the analysis script
+print "Lz ${Lz}"           file   day1_params.txt
+print "wall_th ${wall_th}" append day1_params.txt
+print "vwall ${vwall}"     append day1_params.txt
+
+# optional orientation trajectory for VMD/OVITO (production only; off by default, pass -var dump 1).
+# element names are only for viewer colouring; the model is a generic LJ channel.
+if "${dump} > 0" then &
+  "dump dvmd all xyz 1000 day1_traj.xyz" &
+  "dump_modify dvmd element Ar Kr Kr sort id"
+
+run ${nprod}
+print "Done. Analyse with:  python3 analyse_viscosity.py"

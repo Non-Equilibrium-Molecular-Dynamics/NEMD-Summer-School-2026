@@ -1,0 +1,74 @@
+# =====================================================================
+#  NEMD Summer School 2026 - Day 1 hands-on
+#  MEASUREMENT: slip length
+#
+#  Shear the channel into steady Couette flow and read the velocity
+#  profile vx(z). Extrapolate the linear bulk profile into each wall: the
+#  distance past the wall where it would reach the wall speed is the slip
+#  length b.
+#
+#  Run from this folder via the Cirrus wrapper:
+#     ../submit.sh slip.in        (locally: lmp_serial -in slip.in)
+#  then: python3 analyse_slip.py
+#
+#  This file sets its case parameters, then includes the shared setup with
+#  `include ../shared_setup.lmp` (the LJ channel every Day-1 run shares).
+# =====================================================================
+
+# ---- case parameters (this measurement's settings; -var still overrides) ----
+variable Tbot   index 1.0      # isothermal walls (no thermal gradient)
+variable Ttop   index 1.0
+variable nequil index 20000    # equilibration steps
+variable nprod  index 200000   # production steps; the weak-wall slip case needs a long run
+variable eps_wf index 0.2      # weakly wetting wall -> measurable slip (raise toward 0.6 for a wetting wall)
+
+include ../shared_setup.lmp
+
+# =====================================================================
+#  MEASUREMENT: slip length
+#  Shear the channel, reach steady Couette flow, time-average vx(z).
+# =====================================================================
+variable vwall index 0.5       # wall speed, each wall +/- (gentle = linear regime)
+
+# Drive: override the still default so the outer anchor layers translate at
+# +/- vwall, dragging the stiff walls with them. Thermostat the moving inner
+# bath layers about their STREAMING (centre-of-mass) velocity, so only the
+# thermal jiggle is damped and the drift is preserved.
+# NOTE: `units box` is essential -- without it `velocity set` uses LATTICE units
+# (the last lattice is the fluid lattice, a=1.71), so vwall=0.5 would drive the
+# walls at 0.855 (1.71x too fast) and the measured slip would be garbage.
+velocity drive_bot set -${vwall} 0.0 0.0 units box
+velocity drive_top set  ${vwall} 0.0 0.0 units box
+compute Tcb bath_bot temp/com
+compute Tct bath_top temp/com
+fix_modify bbot temp Tcb
+fix_modify btop temp Tct
+
+run ${nequil}
+reset_timestep 0
+
+variable binw equal 0.5                        # velocity-profile bin width (sigma)
+variable nvb  equal round(v_Lz/v_binw)
+variable dzv  equal v_Lz/v_nvb
+compute cvx fluid chunk/atom bin/1d z lower ${dzv} units box
+fix     fvx fluid ave/chunk 100 ${nrep} ${nfreq} cvx vx file day1_vx.profile
+
+# peculiar fluid temperature (the x-streaming velocity is removed, binned in z): it sits at
+# the T=1.0 set point for a gentle drive, but rises if driving harder viscously heats the
+# fluid -- a heating diagnostic, reported by analyse_slip.py.
+compute tpf fluid temp/profile 1 0 0 z 20
+fix     favt all ave/time 100 ${nrep} ${nfreq} c_tpf file day1_T.dat
+
+# geometry handed to the analysis script
+print "Lz ${Lz}"           file   day1_params.txt
+print "wall_th ${wall_th}" append day1_params.txt
+print "vwall ${vwall}"     append day1_params.txt
+
+# optional orientation trajectory for VMD/OVITO (production only; off by default, pass -var dump 1).
+# element names are only for viewer colouring; the model is a generic LJ channel.
+if "${dump} > 0" then &
+  "dump dvmd all xyz 1000 day1_traj.xyz" &
+  "dump_modify dvmd element Ar Kr Kr sort id"
+
+run ${nprod}
+print "Done. Analyse with:  python3 analyse_slip.py"

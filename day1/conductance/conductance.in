@@ -1,0 +1,110 @@
+# =====================================================================
+#  NEMD Summer School 2026 - Day 1 hands-on
+#  MEASUREMENT: interfacial thermal conductance (Kapitza)
+#
+#  How well does heat cross the solid-liquid interface? Hold the two
+#  walls at different temperatures, let heat conduct across the channel,
+#  and measure the heat current J together with the temperature JUMP dT
+#  right at each wall. The interfacial conductance is G = J / dT.
+#
+#  The gradient is BUILT IN below (hot bottom Tbot=1.3, cold top Ttop=0.9),
+#  so the base run needs NO command-line flags. The walls stay STILL.
+#
+#  Run from this folder via the Cirrus wrapper (locally: lmp_serial -in conductance.in):
+#     ../submit.sh conductance.in                 # base run, built-in gradient
+#     ../submit.sh conductance.in -var Ttop 0.7   # explore a larger dT
+#  then: python3 analyse_conductance.py
+#
+#  Still walls conduct slowly, so conductance uses a LONGER equilibration
+#  (nequil=40000) than the isothermal measurements. The analysis script
+#  flags it if steady state was not reached.
+#
+#  Sets its case parameters, then includes the shared setup with
+#  `include ../shared_setup.lmp` (the LJ channel every Day-1 run shares).
+# =====================================================================
+
+# ---- case parameters (this measurement's settings; -var still overrides) ----
+variable Tbot   index 1.3      # hot bottom wall
+variable Ttop   index 0.9      # cold top wall  -> built-in thermal gradient
+variable nequil index 40000    # still walls conduct slowly: longer equilibration
+variable nprod  index 40000    # production steps (multiple of 100)
+
+include ../shared_setup.lmp
+
+# =====================================================================
+#  MEASUREMENT: interfacial thermal conductance
+#  Walls STILL (do NOT set a drive velocity -- the shared block already
+#  anchors them). The two wall baths sit at Tbot and Ttop; their
+#  difference drives a heat current across the channel. Equilibrate to
+#  thermal steady state, then time-average T(z) and the cumulative bath
+#  heat.
+# =====================================================================
+
+# Guard: if Tbot == Ttop (e.g. an override set them equal) there is no
+# heat current and G is undefined -- fail fast with a clear instruction
+# instead of silently reporting a divide-by-zero conductance.
+variable dTwall equal abs(v_Ttop-v_Tbot)
+if "${dTwall} < 1.0e-9" then &
+  "print 'ERROR: conductance needs a thermal gradient (got Tbot == Ttop == ${Tbot}).'" &
+  "print '       The case header sets a gradient by default; if you overrode it,'" &
+  "print '       give the walls different temperatures, e.g. -var Ttop 0.7'" &
+  "quit 1"
+
+variable heatflux index 0      # -var heatflux 1 -> also bin a local J_z(z) heat-flux profile (optional)
+
+run ${nequil}
+reset_timestep 0
+
+# (T) temperature profile T(z) over the whole channel. temp/profile subtracts
+# any per-bin streaming velocity on the SAME grid as the chunk bins. The walls
+# are still here so there is nothing to subtract, but the bias costs nothing and
+# keeps the measurement honest if a wall is ever driven. The analysis separates
+# wall-surface bins from fluid-interior bins by z.
+variable binwT equal 0.5                        # temperature bin width (sigma)
+variable nbins equal round(v_Lz/v_binwT)        # temp/profile bins ...
+variable dzt   equal v_Lz/v_nbins               # ... matched to the chunk bins
+compute  ctz   all chunk/atom bin/1d z lower ${dzt} units box
+compute  biasT all temp/profile 1 0 0 z ${nbins}
+fix      ftz   all ave/chunk 100 ${nrep} ${nfreq} ctz temp bias biasT &
+         file day1_Tz.profile
+
+# (J) cumulative heat exchanged by each wall bath. bbot/btop in the shared block
+# carry `tally yes`, so f_bbot / f_btop are the running heat each bath has put
+# into its reservoir. |slope vs time| = power = heat current J x area. The hot
+# bath runs negative (it adds heat to the fluid), the cold bath positive; at
+# steady state the two magnitudes match.
+fix      fheat all ave/time 100 1 100 f_bbot f_btop file day1_heat.dat
+
+# geometry / units handed to the analysis script
+print "Lz ${Lz}"           file   day1_params.txt
+print "wall_th ${wall_th}" append day1_params.txt
+variable area equal v_Lx*v_Ly                  # heat-current normalisation (conductance only)
+print "area ${area}"       append day1_params.txt
+print "dt ${dt}"           append day1_params.txt
+print "Tbot ${Tbot}"       append day1_params.txt
+print "Ttop ${Ttop}"       append day1_params.txt
+
+# optional orientation trajectory for VMD/OVITO (production only; off by default, pass -var dump 1).
+# element names are only for viewer colouring; the model is a generic LJ channel.
+if "${dump} > 0" then &
+  "dump dvmd all xyz 1000 day1_traj.xyz" &
+  "dump_modify dvmd element Ar Kr Kr sort id"
+
+# OPTIONAL local heat-flux profile (off by default; pass -var heatflux 1). The per-atom
+# heat flux is J = E v - S.v (energy carried by motion, minus the stress doing work);
+# binning its z-component over the SAME ctz bins gives J_z(z). Given enough averaging it
+# flattens across the channel (heat flux is conserved), the thermal analogue of the
+# v_x(z) profile in slip/viscosity -- but at the Day-1 run length the local profile is
+# still noisy (the bath-tally J is the reliable number; this shows the idea). The
+# analysis script plots the channel bins only. `norm none` SUMS per bin (divided by the bin
+# volume). This optional profile is not used in the reported G; it is plotted if present.
+if "${heatflux} > 0" then &
+  "compute keH all ke/atom" &
+  "compute peH all pe/atom" &
+  "compute sH  all stress/atom NULL pair" &
+  "variable EatH atom c_keH+c_peH" &
+  "variable JzH  atom v_EatH*vz-(c_sH[5]*vx+c_sH[6]*vy+c_sH[3]*vz)" &
+  "fix      fjz  all ave/chunk 100 ${nrep} ${nfreq} ctz v_JzH norm none file day1_heatflux.profile"
+
+run ${nprod}
+print "Done. Analyse with:  python3 analyse_conductance.py"

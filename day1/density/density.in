@@ -1,0 +1,47 @@
+# =====================================================================
+#  NEMD Summer School 2026 - Day 1 hands-on
+#  MEASUREMENT: interfacial density / layering
+#
+#  How much does a liquid layer up against a solid wall? Seed the fluid
+#  at rho_f and read the density profile rho(z): a flat bulk in the
+#  middle, oscillating layers near each wall.
+#
+#  Run from this folder via the Cirrus wrapper:
+#     ../submit.sh density.in        (locally: lmp_serial -in density.in)
+#  then: python3 analyse_density.py
+#
+#  This file sets its case parameters, then includes the shared setup with
+#  `include ../shared_setup.lmp` (the LJ channel every Day-1 run shares).
+# =====================================================================
+
+# ---- case parameters (this measurement's settings; -var still overrides) ----
+variable Tbot   index 1.0      # isothermal walls (no thermal gradient)
+variable Ttop   index 1.0
+variable nequil index 20000    # equilibration steps
+variable nprod  index 50000    # production steps (multiple of 100)
+variable binw   index 0.1      # density bin width (sigma): 0.1 resolves the near-wall layers; coarsen to wash them out
+
+include ../shared_setup.lmp
+
+# =====================================================================
+#  MEASUREMENT: interfacial density
+#  Walls still, isothermal. Equilibrate, then time-average a fine
+#  density profile rho(z) across the channel.
+# =====================================================================
+run ${nequil}
+reset_timestep 0
+
+variable nrho  equal round(v_Lz/v_binw)        # bin count from the chosen bin width (binw, default 0.1 sigma)
+variable dzrho equal v_Lz/v_nrho
+compute crho fluid chunk/atom bin/1d z lower ${dzrho} units box
+fix     frho fluid ave/chunk 100 ${nrep} ${nfreq} crho density/number &
+        file day1_density.profile
+
+# optional orientation trajectory for VMD/OVITO (production only; off by default, pass -var dump 1).
+# element names are only for viewer colouring; the model is a generic LJ channel.
+if "${dump} > 0" then &
+  "dump dvmd all xyz 1000 day1_traj.xyz" &
+  "dump_modify dvmd element Ar Kr Kr sort id"
+
+run ${nprod}
+print "Done. Analyse with:  python3 analyse_density.py"
