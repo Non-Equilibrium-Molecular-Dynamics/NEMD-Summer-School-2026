@@ -1,6 +1,6 @@
 # #####################################################################
-#  DAY 2 - PART 2 : liquid-vapour slab (free-surface LJ)
-#  A single-component Lennard-Jones liquid slab, centred in a longW
+#  DAY 2 - PART 4 : liquid-vapour slab (free-surface LJ)
+#  A single-component Lennard-Jones liquid slab, centred in a long
 #  fully-periodic box (slab normal = z), so its two exposed faces relax
 #  into liquid-vapour interfaces. One run feeds both Part-2 exercises:
 #    (1) the z density profile + the diagonal pressure tensor -> surface
@@ -8,8 +8,8 @@
 #    (2) the trajectory -> the intrinsic (capillary-wave) surface
 #        (intrinsic_surface.py), with -var dump 1
 #
-#  Run one case:   lmp_serial -in liquid_vapour_nvt.in
-#  with a knob:    lmp_serial -in liquid_vapour_nvt.in -var T 1.0
+#  Run one case:               lmp -in liquid_vapour.in
+#  with varying temperature    lmp -in liquid_vapour.in -var T 1.0
 #  for orientation/intrinsic: add  -var dump 1
 #  for the pressure tensor:   add  -var localstress 1
 # #####################################################################
