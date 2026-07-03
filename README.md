@@ -41,9 +41,8 @@ SAFE + MFA token):
    ```
 4. **Set up Python for the analysis scripts** (once per login):
    ```
-   module load PrgEnv-gnu
-   module load cray-python
-   python -m pip install matplotlib scikit-learn
+   source ./python_setup.sh
+   python test.py
    ```
 
 ## Running a measurement
