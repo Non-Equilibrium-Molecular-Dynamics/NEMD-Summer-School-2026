@@ -93,7 +93,6 @@ def main():
 
     print("\nSheet 3: viscosity")
     print(f"    central shear rate dvx/dz = {s:+.4f}  (R^2={r2:.3f})")
-    print(f"    no-slip reference 2*vwall/h = {ns_slope:+.4f}")
 
     # same check as slip: in steady Couette the fluid cannot shear faster
     # than the walls drive it (a violation poisons the shear rate, hence eta).
@@ -105,11 +104,9 @@ def main():
                  "    (check the drive-velocity units / steady state); eta would be meaningless.")
 
     eta = abs(pxz) / abs(s) if abs(s) > 1e-9 else float("nan")
-    print(f"    mean fluid-only shear stress pxz = {pxz:+.4f}")
+    print(f"    mean shear stress pxz = {pxz:+.4f}")
     print(f"    viscosity eta = |pxz| / (dvx/dz) ~ {eta:.3f}")
-    print("    (fluid-only virial, the stiff walls dropped -> less noisy than")
-    print("     the global pressure tensor; single-run values vary with the")
-    print("     seed and the run length.)")
+    print("    (single-run values vary with the seed and the run length.)")
 
     Tcen = Tpec[len(Tpec) // 2]
     print(f"    fluid temperature T(z): walls ~{Tpec[0]:.2f} / {Tpec[-1]:.2f}, centre ~{Tcen:.2f}")
