@@ -28,7 +28,7 @@ variable dt      index 0.005   # timestep
 variable tdamp   index 1.0     # Nose-Hoover damping (tau)
 variable nevery  index 100     # output frequency
 variable nequil  index 10000   # equilibration steps
-variable nprod   index 50000  # production steps. LIVE default 100000; the shipped reference uses 500000
+variable nprod   index 500000  # production steps. LIVE default 100000; the shipped reference uses 500000
 variable seed    index 90187   # RNG seed for the initial velocities. The ensemble varies this per replica
 variable dump    index 0       # -var dump 1 -> write slab_traj.xyz (production) for view_domain / intrinsic
 variable localstress index 0   # -var localstress 1 -> also bin the diagonal pressure tensor for gamma

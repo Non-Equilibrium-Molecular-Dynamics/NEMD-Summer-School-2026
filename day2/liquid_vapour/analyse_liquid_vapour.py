@@ -17,6 +17,22 @@ if __name__ == "__main__":
     if files == []:
         files = ["./"]
 
+    slab_params = {}
+    try:
+        with open(files[0] + "/slab_params.txt") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                key, value = line.split()
+                try:
+                    slab_params[key] = int(value)
+                except ValueError:
+                    slab_params[key] = float(value)
+    except IOError:
+        print("slab_params.txt file not found")
+        slab_params["Lx"]=10.726842421158799823 #Guess default values
+        slab_params["Ly"]=10.726842421158799823
+
     #Loop over files and average
     rho = []
     for file in files:
@@ -101,9 +117,11 @@ if __name__ == "__main__":
             P_k.append(stress[:,6:])  #Kinetic Stress
 
         #Plot Stress
-        P_c = np.mean(P_c,0)
-        P_k = np.mean(P_k,0)
-        P = P_c + P_k #Total Stress k+c
+        dz = z[1] - z[0]
+        V = slab_params["Lx"]*slab_params["Ly"]*dz
+        P_c = np.mean(P_c,0)/V
+        P_k = np.mean(P_k,0)/V
+        P = (P_c + P_k) #Total Stress k+c
 
         plt.plot(z, P_c[:,0], '-r',  label="$P^c_{xx}$")
         plt.plot(z, P_c[:,1], '-b',  label="$P^c_{yy}$")
@@ -117,4 +135,21 @@ if __name__ == "__main__":
 
         plt.legend(ncol=3)
         plt.show()
+
+
+        #Get integrated surface tension
+        PN = P[:,0]
+        PT =  0.5*(P[:,1]+P[:,2])
+        integrand = PN - PT
+        gamma = 0.5 * np.trapz(integrand, dx=dz)
+        plt.plot(z, PN, 'r', label="$P_N = P_{zz}$")
+        plt.plot(z, PT, 'k', label="$P_T = 0.5*(P_{xx}+P_{yy})$")
+        plt.plot(z, integrand, 'b')
+        plt.fill_between(z, integrand, 0, alpha=0.2, label="$P_N - P_T$")
+        plt.title("Surface Tension $\gamma = $" + str(gamma))
+        plt.legend()
+        plt.show()
+
+
+
 
