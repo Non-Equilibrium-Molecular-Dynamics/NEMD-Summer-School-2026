@@ -43,6 +43,8 @@ if __name__ == "__main__":
         ncount = density[:,2]
         rho.append(density[:,3])
 
+    rho = np.mean(rho,0)
+
     #tanh interface fitting:
     def model(x, rho0, delrho, delta, xl, xr):
         return rho0 + 0.5 * delrho * (
@@ -92,7 +94,6 @@ if __name__ == "__main__":
     y_fit = model(x_fit, *params)
     
     #Plot density
-    rho = np.mean(rho,0)
     plt.plot(z, rho,'o') 
     plt.plot(x_fit, y_fit,'r-') 
     plt.axvline(xl,color='k',linestyle='--') 
@@ -138,14 +139,13 @@ if __name__ == "__main__":
 
 
         #Get integrated surface tension
-        PN = P[:,0]
-        PT =  0.5*(P[:,1]+P[:,2])
+        PN = P[:,2]
+        PT =  0.5*(P[:,0]+P[:,1])
         integrand = PN - PT
         gamma = 0.5 * np.trapz(integrand, dx=dz)
         plt.plot(z, PN, 'r', label="$P_N = P_{zz}$")
-        plt.plot(z, PT, 'g', label="$P_T = 0.5*(P_{xx}+P_{yy})$")
-        plt.plot(z, integrand, 'b')
-        plt.fill_between(z, integrand, 0, alpha=0.2, label="$P_N - P_T$")
+        plt.plot(z, PT, 'b', label="$P_T = 0.5*(P_{xx}+P_{yy})$")
+        plt.fill_between(z, PN, PT, alpha=0.2, label="Area of $\int P_N - P_T dz$")
         plt.title("Surface Tension $\gamma = $" + str(gamma))
         plt.legend()
         plt.show()
