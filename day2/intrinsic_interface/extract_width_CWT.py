@@ -21,10 +21,10 @@ def main():
             "fitted width with a naive capillary-wave-theory estimate."
         )
     )
-    parser.add_argument( "profile", help="Input profile file, e.g. itim_lab.dat.",)
-    parser.add_argument( "--gamma", type=float, required=True, help="Surface tension in reduced LJ units.",)
-    parser.add_argument( "--box-width", type=float, required=True, help="Lateral box width L_parallel in reduced LJ units.",)
-    parser.add_argument( "--cutoff", type=float, required=True, help="Small-scale/UV cutoff a in reduced LJ units.",)
+    parser.add_argument( "-p", "--profile", default="itim_lab.dat", help="Input profile file, e.g. itim_lab.dat.",)
+    parser.add_argument( "--gamma", type=float, default=0.882, help="Surface tension in reduced LJ units.",)
+    parser.add_argument( "--box-width", type=float, default=24.5, help="Lateral box width L_parallel in reduced LJ units. Default: 24.5",)
+    parser.add_argument( "--cutoff", type=float, default=1, help="Small-scale/UV cutoff a in reduced LJ units. Defaukt: 1.0",)
     parser.add_argument( "--temperature", type=float, default=0.82, help="Reduced temperature T*. Default: 0.82.",)
     parser.add_argument( "-o", "--output", default="lab_density_fit.dat", help="Output file with z, rho, fitted rho. Default: lab_density_fit.dat.",)
 
