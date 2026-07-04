@@ -13,6 +13,7 @@ mirrors on the LAMMPS side). At the top of each analyser:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from lammps_io import read_profile, read_params, read_timeseries
 """
+import getpass
 import os
 import sys
 import tempfile
@@ -21,7 +22,10 @@ import numpy as np
 
 # Point matplotlib's cache at a writable dir BEFORE any analyser imports matplotlib,
 # so a non-writable $HOME on HPC does not warn and rebuild the font cache (~10 s) each run.
-os.environ.setdefault("MPLCONFIGDIR", os.path.join(tempfile.gettempdir(), "day1_mplcache"))
+# Per-user path: on a shared login node a fixed /tmp name is owned by whoever ran first,
+# and everyone else gets a not-writable warning on every run.
+os.environ.setdefault("MPLCONFIGDIR",
+                      os.path.join(tempfile.gettempdir(), f"day1_mplcache_{getpass.getuser()}"))
 
 
 def _last_chunk_block(lines):
