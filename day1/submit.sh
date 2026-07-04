@@ -75,4 +75,4 @@ EOF
 )
 echo "Submitted job $JOBID. Wait until 'squeue --me' no longer lists it, THEN run the analyser:"
 echo "    python analyse_${IN%.in}.py"
-echo "(running it before the job finishes reports 'not found', never stale numbers.)"
+echo "(running it before the job finishes reports 'not found'.)"
