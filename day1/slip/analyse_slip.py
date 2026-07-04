@@ -29,13 +29,20 @@ def plot(z, vx, s, c, zwlo, zwhi, vwall, b, out="day1_slip.png"):
         return
     BLUE, RED = "#1F3A5F", "#B23A2E"
     fig, ax = plt.subplots(figsize=(4.0, 4.2))
-    zl = np.linspace(zwlo - 1.0, zwhi + 1.0, 50)
+    zl = np.linspace(min(zwlo - 1.0, zwlo - b - 0.5), max(zwhi + 1.0, zwhi + b + 0.5), 80)
     ax.plot(2 * vwall / (zwhi - zwlo) * (zl - 0.5 * (zwlo + zwhi)), zl,
             color="#999", ls="--", lw=1.0, label=r"no-slip reference ($b=0$)")
     ax.scatter(vx, z, s=14, color=BLUE, alpha=0.75, label=r"measured $v_x(z)$")
     ax.plot(s * zl + c, zl, color=RED, lw=1.4, label="central fit, extrapolated")
     ax.axhline(zwlo, color="#888", ls=":", lw=0.9); ax.axhline(zwhi, color="#888", ls=":", lw=0.9)
     ax.axvline(-vwall, color="#bbb", ls="--", lw=0.7); ax.axvline(vwall, color="#bbb", ls="--", lw=0.7)
+    # mark b: the distance beyond the top wall face where the fit reaches +vwall
+    if abs(s) > 1e-12 and abs(b) < (zwhi - zwlo):
+        z_hit = (vwall - c) / s
+        ax.annotate("", xy=(vwall, zwhi), xytext=(vwall, z_hit),
+                    arrowprops=dict(arrowstyle="<->", color=RED, lw=1.0))
+        ax.text(vwall - 0.12 * vwall, 0.5 * (zwhi + z_hit), r"$b \approx %.1f\,\sigma$" % b,
+                color=RED, ha="right", va="center", fontsize=8)
     ax.set_xlabel(r"$v_x(z)$"); ax.set_ylabel(r"$z\ (\sigma)$")
     ax.set_title(r"velocity profile  ($b = %.3f\,\sigma$)" % b)
     ax.legend(fontsize=8, frameon=False, loc="upper left")
