@@ -195,11 +195,11 @@ def main():
     # is nearly blind to steadiness. A 5% imbalance threshold is used here; larger
     # values mean the run has not reached steady state and should be lengthened.
     if imbal > 0.05:
-        print(f"    WARNING: bath powers imbalanced {100*imbal:.1f}% (a converged run sits ~1%")
-        print("             or less) -> energy in != out; lengthen nequil / nprod (~40000).")
+        print(f"    WARNING: bath powers imbalanced {100*imbal:.1f}% (a steady run sits near 0%)")
+        print("             -> energy in != out; the run is not steady. Lengthen nequil (~40000).")
     if min(r2lo, r2hi) < 0.95:
-        print("    WARNING: cumulative bath heat is grossly non-stationary "
-              f"(R^2 {r2lo:.3f}/{r2hi:.3f}) -> lengthen nequil.")
+        print("    WARNING: the cumulative-heat curves are far from straight lines "
+              f"(linear-fit R^2 {r2lo:.3f}/{r2hi:.3f}) -> the run is not steady; lengthen nequil.")
     if r2T < 0.95:
         print(f"    WARNING: fluid-interior T(z) fit is poor (R^2={r2T:.3f}) -> the profile")
         print("             is not yet linear/steady, so dT/dz and the extrapolated face")
