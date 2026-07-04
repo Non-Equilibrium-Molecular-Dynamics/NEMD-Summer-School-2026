@@ -143,7 +143,7 @@ if __name__ == "__main__":
         integrand = PN - PT
         gamma = 0.5 * np.trapz(integrand, dx=dz)
         plt.plot(z, PN, 'r', label="$P_N = P_{zz}$")
-        plt.plot(z, PT, 'k', label="$P_T = 0.5*(P_{xx}+P_{yy})$")
+        plt.plot(z, PT, 'g', label="$P_T = 0.5*(P_{xx}+P_{yy})$")
         plt.plot(z, integrand, 'b')
         plt.fill_between(z, integrand, 0, alpha=0.2, label="$P_N - P_T$")
         plt.title("Surface Tension $\gamma = $" + str(gamma))
