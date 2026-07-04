@@ -13,7 +13,7 @@
 #  Run from this folder via the Cirrus wrapper (locally: lmp_serial -in conductance.in):
 #     ../submit.sh conductance.in                 # base run, built-in gradient
 #     ../submit.sh conductance.in -var Ttop 0.7   # explore a larger dT
-#  then: python3 analyse_conductance.py
+#  then: python analyse_conductance.py
 #
 #  Still walls conduct slowly, so conductance uses a LONGER equilibration
 #  (nequil=40000) than the isothermal measurements. The analysis script
@@ -107,4 +107,4 @@ if "${heatflux} > 0" then &
   "fix      fjz  all ave/chunk 100 ${nrep} ${nfreq} ctz v_JzH norm none file day1_heatflux.profile"
 
 run ${nprod}
-print "Done. Analyse with:  python3 analyse_conductance.py"
+print "Done. Analyse with:  python analyse_conductance.py"

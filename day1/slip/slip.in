@@ -9,7 +9,7 @@
 #
 #  Run from this folder via the Cirrus wrapper:
 #     ../submit.sh slip.in        (locally: lmp_serial -in slip.in)
-#  then: python3 analyse_slip.py
+#  then: python analyse_slip.py
 #
 #  This file sets its case parameters, then includes the shared setup with
 #  `include ../shared_setup.lmp` (the LJ channel every Day-1 run shares).
@@ -71,4 +71,4 @@ if "${dump} > 0" then &
   "dump_modify dvmd element Ar Kr Kr sort id"
 
 run ${nprod}
-print "Done. Analyse with:  python3 analyse_slip.py"
+print "Done. Analyse with:  python analyse_slip.py"

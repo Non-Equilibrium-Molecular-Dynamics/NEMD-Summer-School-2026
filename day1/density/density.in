@@ -8,7 +8,7 @@
 #
 #  Run from this folder via the Cirrus wrapper:
 #     ../submit.sh density.in        (locally: lmp_serial -in density.in)
-#  then: python3 analyse_density.py
+#  then: python analyse_density.py
 #
 #  This file sets its case parameters, then includes the shared setup with
 #  `include ../shared_setup.lmp` (the LJ channel every Day-1 run shares).
@@ -44,4 +44,4 @@ if "${dump} > 0" then &
   "dump_modify dvmd element Ar Kr Kr sort id"
 
 run ${nprod}
-print "Done. Analyse with:  python3 analyse_density.py"
+print "Done. Analyse with:  python analyse_density.py"
