@@ -36,7 +36,10 @@ def plot(z, rho, rho_bulk, rho_peak, out="day1_density.png"):
     plt.savefig(out, dpi=150)
     print(f"    plot -> {out}")
     if os.environ.get("DISPLAY"):     # ssh -X: also pop the figure up on screen
-        plt.show()
+        try:
+            plt.show()
+        except KeyboardInterrupt:      # Ctrl-C with the window up: fine, the file is already saved
+            pass
 
 def main():
     if not os.path.exists("day1_density.profile"):

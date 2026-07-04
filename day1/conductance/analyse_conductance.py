@@ -77,7 +77,10 @@ def plot(z, T, z_wall_bot, z_wall_top, sT, bT, Tw_bot, Tf_bot, Tw_top, Tf_top,
     fig.tight_layout(); fig.savefig(out, dpi=150)
     print(f"    plot -> {out}")
     if os.environ.get("DISPLAY"):     # ssh -X: also pop the figure up on screen
-        plt.show()
+        try:
+            plt.show()
+        except KeyboardInterrupt:      # Ctrl-C with the window up: fine, the file is already saved
+            pass
 
 
 def plot_heatflux(z, Jz, z_wall_bot, z_wall_top, out="day1_heatflux.png"):
@@ -102,7 +105,10 @@ def plot_heatflux(z, Jz, z_wall_bot, z_wall_top, out="day1_heatflux.png"):
     plt.savefig(out, dpi=150)
     print(f"    heat-flux plot -> {out}")
     if os.environ.get("DISPLAY"):     # ssh -X: also pop the figure up on screen
-        plt.show()
+        try:
+            plt.show()
+        except KeyboardInterrupt:      # Ctrl-C with the window up: fine, the file is already saved
+            pass
 
 
 def main():

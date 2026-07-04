@@ -75,7 +75,10 @@ def main():
     fig.tight_layout(); fig.savefig(OUT, dpi=150)
     print(f"    domain -> {OUT}")
     if os.environ.get("DISPLAY"):     # ssh -X: also pop the figure up on screen
-        plt.show()
+        try:
+            plt.show()
+        except KeyboardInterrupt:      # Ctrl-C with the window up: fine, the file is already saved
+            pass
 
 
 if __name__ == "__main__":

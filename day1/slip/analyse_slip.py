@@ -42,7 +42,10 @@ def plot(z, vx, s, c, zwlo, zwhi, vwall, b, out="day1_slip.png"):
     fig.tight_layout(); fig.savefig(out, dpi=150)
     print(f"    plot -> {out}")
     if os.environ.get("DISPLAY"):     # ssh -X: also pop the figure up on screen
-        plt.show()
+        try:
+            plt.show()
+        except KeyboardInterrupt:      # Ctrl-C with the window up: fine, the file is already saved
+            pass
 
 def main():
     for fn in ("day1_vx.profile", "day1_params.txt"):

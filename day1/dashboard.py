@@ -198,7 +198,10 @@ def main():
         fig.savefig(args.out, dpi=150)
         print(f"overview -> {args.out}")
         if os.environ.get("DISPLAY"):  # ssh -X: also pop the overview up on screen
-            plt.show()
+            try:
+                plt.show()
+            except KeyboardInterrupt:  # Ctrl-C with the window up: fine, the file is already saved
+                pass
         return
 
     # live mode: needs an interactive backend; if there is no display, degrade to
