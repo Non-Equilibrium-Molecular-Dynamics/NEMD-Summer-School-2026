@@ -148,16 +148,15 @@ def plot(zc, vx, vxfit, rho, Pxz, eta, maskhw, plateau, wmeas, tag, wide, out=No
     if wide:
         ax[3].plot(eta, zc, color=BLUE, lw=1.8)
         if not np.isnan(plateau):
-            ax[3].axvline(plateau, color=GREY, lw=0.9, ls="--", label=r"plateau $\approx%.2f$" % plateau)
+            ax[3].axvline(plateau, color=GREY, lw=0.9, ls="--", label=r"mid-pore $\eta \approx %.2f$" % plateau)
             ax[3].legend(fontsize=7, frameon=False)
-        ax[3].set_xlim(0, 5); ax[3].set_title("local viscosity (flat plateau)")
+        ax[3].set_xlim(0, 3)
     else:
         ax[3].plot(eta, zc, color=GREY, lw=1.4)
-        ax[3].set_xlim(-6, 10); ax[3].set_title(r"local viscosity (no single $\eta$)")
+        ax[3].set_xlim(-6, 10)
+    ax[3].set_title("local viscosity")
     ax[3].set_xlabel(r"$\eta(z)$")
-    title = (f"slit-pore w = {wmeas:.1f} sigma  (wide: eta(z) flat)" if wide
-             else f"slit-pore w = {wmeas:.1f} sigma  (narrow: Newton's law breaks down)")
-    fig.suptitle(title, fontsize=10)
+    fig.suptitle(f"slit-pore w = {wmeas:.1f} sigma", fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.96)); fig.savefig(out, dpi=150)
     print(f"    plot -> {out}")
 
