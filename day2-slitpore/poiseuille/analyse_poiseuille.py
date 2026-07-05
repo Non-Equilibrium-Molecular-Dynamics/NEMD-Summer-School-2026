@@ -160,11 +160,6 @@ def plot(zc, vx, vxfit, rho, Pxz, eta, maskhw, plateau, wmeas, tag, wide, out=No
     fig.suptitle(title, fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.96)); fig.savefig(out, dpi=150)
     print(f"    plot -> {out}")
-    if os.environ.get("DISPLAY"):     # ssh -X: also pop the figure up on screen
-        try:
-            plt.show()
-        except KeyboardInterrupt:      # Ctrl-C with the window up: fine, the file is already saved
-            pass
 
 
 def main():
@@ -179,6 +174,17 @@ def main():
             print(f"  ({par} missing - skipping {prof})")
             continue
         analyse_one(prof, par, tag)
+    if os.environ.get("DISPLAY"):      # ssh -X: pop every width's figure up together at the end
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError:
+            return
+        if plt.get_fignums():
+            print("\n(close the plot windows to finish)")
+            try:
+                plt.show()
+            except KeyboardInterrupt:  # Ctrl-C with the windows up: fine, the PNGs are already saved
+                pass
 
 
 if __name__ == "__main__":
