@@ -41,7 +41,7 @@ def linfit(x, y):
 
 
 def plot(z, T, z_wall_bot, z_wall_top, sT, bT, Tw_bot, Tf_bot, Tw_top, Tf_top,
-         out="day1_conductance.png"):
+         out="day1_conductance.pdf"):
     """T(z) across the channel (z vertical, side-on) with the interfacial
     temperature JUMP marked at each wall: the weighted wall-surface T (circle)
     against the fluid conduction line extrapolated to the same face (square).
@@ -83,7 +83,7 @@ def plot(z, T, z_wall_bot, z_wall_top, sT, bT, Tw_bot, Tf_bot, Tw_top, Tf_top,
             pass
 
 
-def plot_heatflux(z, Jz, z_wall_bot, z_wall_top, out="day1_heatflux.png"):
+def plot_heatflux(z, Jz, z_wall_bot, z_wall_top, out="day1_heatflux.pdf"):
     """J_z(z) in the fluid channel only -- the thermostatted wall bins are excluded
     because their per-atom energy spikes would crush the channel signal off-scale.
     With enough averaging J_z flattens (heat flux is conserved); at Day-1 length it

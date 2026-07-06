@@ -15,7 +15,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from lammps_io import read_profile, read_timeseries, read_params
 
-def plot(z, vx, s, c, zwlo, zwhi, Tpec, pxz_series, eta, out="day1_viscosity.png"):
+def plot(z, vx, s, c, zwlo, zwhi, Tpec, pxz_series, eta, out="day1_viscosity.pdf"):
     """Three panels: the clean linear velocity profile (left) gives the shear rate,
     the peculiar temperature T(z) (centre) shows whether viscous heating has humped
     the channel, and the fluid-only shear-stress trace (right) gives p_xz. The

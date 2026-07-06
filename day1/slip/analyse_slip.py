@@ -15,7 +15,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from lammps_io import read_profile, read_params, read_series_or_none
 
-def plot(z, vx, s, c, zwlo, zwhi, vwall, b, out="day1_slip.png"):
+def plot(z, vx, s, c, zwlo, zwhi, vwall, b, out="day1_slip.pdf"):
     """Save the velocity profile v_x(z) (z vertical, side-on like the channel)
     with the central Couette fit extrapolated to the wall faces, so the slip
     length b reads off as the offset between the fit and the wall speed."""

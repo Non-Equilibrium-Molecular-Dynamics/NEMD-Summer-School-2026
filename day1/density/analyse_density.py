@@ -2,7 +2,7 @@
 """Day 1 - interfacial density / layering.
 
 Reads the fine density profile written by density.in, reports the bulk density
-and the near-wall layering, and saves a plot of rho(z) to day1_density.png.
+and the near-wall layering, and saves a plot of rho(z) to day1_density.pdf.
 Run after `lmp_serial -in density.in`.
 """
 import os
@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from lammps_io import read_profile
 
-def plot(z, rho, rho_bulk, rho_peak, out="day1_density.png"):
+def plot(z, rho, rho_bulk, rho_peak, out="day1_density.pdf"):
     """Save rho(z) with z vertical, so it reads like the channel side-on."""
     try:
         import matplotlib
